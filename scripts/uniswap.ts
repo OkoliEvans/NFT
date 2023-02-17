@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import { providers } from "ethers";
+import { providers, BigNumber } from "ethers";
 
 async function main() {
 
@@ -32,20 +32,19 @@ async function main() {
   ///////////////////  CONNECT UNI  /////////////////////////
   const UniContract = await ethers.getContractAt("IToken", UNI);
 
-  ////////////////// GET BALANCE OF DAI HOLDER ///////////////
-  const holderBalance = await DaiContract.balanceOf(DAIHolder);
-  console.log(`Dai balance before ${holderBalance}`);
 
   ////////////////////  APPROVE FUNDS  //////////////////////
-  const amountToSwap = await ethers.utils.parseEther("0.1");
-  const amountToReceive = await ethers.utils.parseEther("0.5");
+  const amountADesired = await ethers.utils.parseEther("0.1");
+  const amountBDesired = await ethers.utils.parseEther("0.5");
   const amountAmin = await ethers.utils.parseEther("0.01");
-  const amountBmn = await ethers.utils.parseEther("0.01");
-  const allowanceReceive= await DaiContract.connect(impersonatedSigner).approve(ROUTER, amountToReceive);
-  const allowanceSwap= await DaiContract.connect(impersonatedSigner).approve(ROUTER, amountToSwap);
+  const amountBmin = await ethers.utils.parseEther("0.01");
+
+
+  const allowanceReceive= await DaiContract.connect(impersonatedSigner).approve(ROUTER, amountBDesired);
+  const allowanceSwap= await DaiContract.connect(impersonatedSigner).approve(ROUTER, amountADesired);
   const allowanceMin= await DaiContract.connect(impersonatedSigner).approve(ROUTER, amountAmin);
-  const allowanceBMini= await DaiContract.connect(impersonatedSigner).approve(ROUTER, amountBmn);
-  console.log(`Allowed balance : ${allowanceReceive}`);
+  const allowanceBMini= await DaiContract.connect(impersonatedSigner).approve(ROUTER, amountBmin);
+  console.log(`Allowed balance : ${allowanceSwap}`);
   
 
   ///////////////////// CHECK BALANCES  ///////////////////////////
@@ -59,10 +58,10 @@ async function main() {
     await Uniswap.connect(impersonatedSigner).addLiquidity(
     DAI,
     UNI,
-    amountToSwap,
-    amountToReceive,
+    amountADesired,
+    amountBDesired,
     amountAmin,
-    amountBmn,
+    amountBmin,
     DAIHolder,
     time
   )
@@ -77,7 +76,7 @@ async function main() {
   const amountEthMin = await ethers.utils.parseEther("0.09");
   await Uniswap.connect(impersonatedSigner).addLiquidityETH(
     DAI,
-    amountToReceive,
+    amountBDesired,
     amountAmin,
     amountEthMin,
     DAIHolder,
@@ -95,7 +94,7 @@ async function main() {
     UNI,
     50,
     amountAmin,
-    amountBmn,
+    amountBmin,
     DAIHolder,
     time
   )
