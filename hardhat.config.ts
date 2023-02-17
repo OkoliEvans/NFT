@@ -1,6 +1,5 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
-import "@nomiclabs/hardhat-etherscan";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -9,6 +8,11 @@ const config: HardhatUserConfig = {
   
   networks: {
   hardhat: {
+    forking: {
+      enabled: true,
+      //@ts-ignore
+      url: process.env.ALCHEMY_RPC,
+    },
   },
   goerli: {
     url: process.env.GOERLI_RPC,
