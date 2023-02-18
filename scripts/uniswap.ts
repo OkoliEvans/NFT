@@ -75,15 +75,15 @@ console.log(`DAI Balance after: ${DAIBalanceAfter}`);
   console.log(`DAI Balance before: ${DAIBalanceBeforeAddETH}`);
 
 
-  const amountEthMin = await ethers.utils.parseEther("0.5");
-  await WETH_Contract_Address.connect(impersonatedSigner).approve(Uniswap_ROUTER, amountEthMin);
+  await DAI_Contract_Address.connect(impersonatedSigner).approve(Uniswap_ROUTER, 200_000);
   await Uniswap_Router_Contract_Address.connect(impersonatedSigner).addLiquidityETH(
     DAI,
-    10000,
+    await ethers.utils.parseEther("10"),
     0,
     0,
     DAIHolder,
-    time
+    time,
+    {value: 10}
   );
 
   const DAIBalanceAfterAddEth = await DAI_Contract_Address.balanceOf(DAIHolder);
@@ -91,6 +91,13 @@ console.log(`DAI Balance after: ${DAIBalanceAfter}`);
 
 
   //////////////// REMOVE LIQUIDITY  //////////////////////////
+
+  console.log("/////////////////  REMOVE LIQUIDITY  ///////////////////////");
+  const DAI_UNI_PAIR = "0x6F7e2CcaD0327f35DCeEf126f969ac193d2e7C3d";
+  const DAI_UNI_Contract_Address_Router = await ethers.getContractAt("IUniswapV2Factory",DAI_UNI_PAIR);
+  
+
+
 
 //   await Uniswap.connect(impersonatedSigner).removeLiquidity(
 //     DAI,
