@@ -93,21 +93,34 @@ console.log(`DAI Balance after: ${DAIBalanceAfter}`);
   //////////////// REMOVE LIQUIDITY  //////////////////////////
 
   console.log("/////////////////  REMOVE LIQUIDITY  ///////////////////////");
+  const Uniswapv2FactoryAddress = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
   const DAI_UNI_PAIR = "0x6F7e2CcaD0327f35DCeEf126f969ac193d2e7C3d";
-  const DAI_UNI_Contract_Address_Router = await ethers.getContractAt("IUniswapV2Factory",DAI_UNI_PAIR);
+  const UniswapV2Factory = await ethers.getContractAt("IUniswap",Uniswapv2FactoryAddress);
   
+  const getPair = await UniswapV2Factory.getPair(DAI, UNI);
+  //const pair_Address = await UniswapV2Factory.connect(impersonatedSigner).getPair(UNI,DAI);
+  const pair_Token = await ethers.getContractAt("IToken", getPair);
 
+  const Pair_Balance = await pair_Token.balanceOf(DAIHolder);
+  console.log(`Balance of Pair Token Before Remove: ${Pair_Balance}`);
 
+  const amountToSwap = await ethers.utils.parseEther("200");
+  const amountToSwap2 = await ethers.utils.parseEther("1");
 
-//   await Uniswap.connect(impersonatedSigner).removeLiquidity(
-//     DAI,
-//     UNI,
-//     50,
-//     amountAmin,
-//     amountBmin,
-//     DAIHolder,
-//     time
-//   )
+    await pair_Token.connect(impersonatedSigner).approve(Uniswap_ROUTER, amountToSwap);
+
+  await Uniswap_Router_Contract_Address.connect(impersonatedSigner).removeLiquidity(
+    DAI,
+    UNI,
+    600,
+    0,
+    0,
+    DAIHolder,
+    time
+  )
+
+  const Pair_Balance_After = await pair_Token.balanceOf(DAIHolder);
+  console.log(`Balance of Pair Token After Remove: ${Pair_Balance_After}`);
 
  }
 
