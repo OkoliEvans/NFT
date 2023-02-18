@@ -1,105 +1,108 @@
 import { ethers } from "hardhat";
-import { providers, BigNumber } from "ethers";
+import { impersonateAccount } from "@nomicfoundation/hardhat-network-helpers";
 
 async function main() {
 
-  const ROUTER = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
+  const Uniswap_ROUTER = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
+  const Uniswap_Router_Contract_Address = await ethers.getContractAt("IUniswap", Uniswap_ROUTER);
+
   //dai token address
   const DAI = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
+  const DAI_Contract_Address = await ethers.getContractAt("IERC20", DAI);
+  const DAIHolder = "0x748dE14197922c4Ae258c7939C7739f3ff1db573";
+
+
   //uni token address
   const UNI = "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984";
+  const UNI_Contract_Address = await ethers.getContractAt("IERC20", UNI);
+
+  //USDC Address
+  const USDC = "0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc";
+  const USDC_Contract_Address = await ethers.getContractAt("IERC20", USDC);
 
   //WETH TOKEN ADDRESS
-  const WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+  const WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
+  const WETH_Contract_Address = await ethers.getContractAt("IERC20", WETH);
   //dai holder
-  const DAIHolder = "0x748dE14197922c4Ae258c7939C7739f3ff1db573";
+  
 
   const path = [DAI,WETH];
   const pathDAIUNI = [DAI,UNI];
   let time = 2076592999;
 
-    ///////////// INTERFACE COONECT  /////////////////
-  const Uniswap = await ethers.getContractAt("IUniswap", ROUTER);
 
   ////////////// IMPERSONATION  ////////////////////////////
-  const helpers = require("@nomicfoundation/hardhat-network-helpers");
-  await helpers.impersonateAccount(DAIHolder);
+  await impersonateAccount(DAIHolder);
   const impersonatedSigner = await ethers.getSigner(DAIHolder);
 
-////////////////////// CONNECT DAI  /////////////////////
-  const DaiContract = await ethers.getContractAt("IToken", DAI);
-
-  ///////////////////  CONNECT UNI  /////////////////////////
-  const UniContract = await ethers.getContractAt("IToken", UNI);
-
-
-  ////////////////////  APPROVE FUNDS  //////////////////////
-  const amountADesired = await ethers.utils.parseEther("0.1");
-  const amountBDesired = await ethers.utils.parseEther("0.5");
-  const amountAmin = await ethers.utils.parseEther("0.01");
-  const amountBmin = await ethers.utils.parseEther("0.01");
-
-
-  const allowanceReceive= await DaiContract.connect(impersonatedSigner).approve(ROUTER, amountBDesired);
-  const allowanceSwap= await DaiContract.connect(impersonatedSigner).approve(ROUTER, amountADesired);
-  const allowanceMin= await DaiContract.connect(impersonatedSigner).approve(ROUTER, amountAmin);
-  const allowanceBMini= await DaiContract.connect(impersonatedSigner).approve(ROUTER, amountBmin);
-  console.log(`Allowed balance : ${allowanceSwap}`);
+  ///////////////////  GET BALANCES  ////////////////////////
+  console.log("`////////////// ADD LIQUIDITY //////////////`");
   
+  const UNIBalanceBefore = await UNI_Contract_Address.balanceOf(DAIHolder);
+  console.log(`UNI Balance: ${UNIBalanceBefore}`);
 
-  ///////////////////// CHECK BALANCES  ///////////////////////////
-  const uniBalance = await UniContract.balanceOf(DAIHolder);
-  console.log(`uniBalance ${uniBalance}`);
+  const DAIBalanceBefore = await DAI_Contract_Address.balanceOf(DAIHolder);
+  console.log(`DAI Balance: ${DAIBalanceBefore}`);
 
-  const DAIBalance = await DaiContract.balanceOf(DAIHolder);
-  console.log(`DAI balance: ${DAIBalance}`);
+  /////////////////////// APPROVE UNI_ROUTER  ///////////////////
+  await DAI_Contract_Address.connect(impersonatedSigner).approve(Uniswap_ROUTER, 50000);
+  await UNI_Contract_Address.connect(impersonatedSigner).approve(Uniswap_ROUTER, 10000);
   
 //////////////////// ADD LIQUIDITY  /////////////////////
-    await Uniswap.connect(impersonatedSigner).addLiquidity(
+    await Uniswap_Router_Contract_Address.connect(impersonatedSigner).addLiquidity(
     DAI,
     UNI,
-    amountADesired,
-    amountBDesired,
-    amountAmin,
-    amountBmin,
+    20000,
+    5000,
+    0,
+    0,
     DAIHolder,
-    time
+    time 
   )
- const UNIBalanceAfter = await UniContract.balanceOf(DAIHolder);
-  console.log(`UNI Balance after ${UNIBalanceAfter}`);
+//  const UNIBalanceAfter = await UniContract.balanceOf(DAIHolder);
+//   console.log(`UNI Balance after ${UNIBalanceAfter}`);
 
-  const DAIholderBalanceAfter = await DaiContract.balanceOf(DAIHolder);
-  console.log(`Dai balance After ETH: ${DAIholderBalanceAfter}`);
+const UNIBalanceAfter = await UNI_Contract_Address.balanceOf(DAIHolder);
+console.log(`UNI Balance after: ${UNIBalanceAfter}`);
+
+const DAIBalanceAfter = await DAI_Contract_Address.balanceOf(DAIHolder);
+console.log(`DAI Balance after: ${DAIBalanceAfter}`);
+
+  /////////////////////////  ADD LIQUIDITY ETH  ////////////////////
+
+  console.log(`////////////////// ADD LIQUIDITY ETH  ///////////////`);
+  const DAIBalanceBeforeAddETH = await DAI_Contract_Address.balanceOf(DAIHolder);
+  console.log(`DAI Balance before: ${DAIBalanceBeforeAddETH}`);
 
 
-  /////////////////////////  ADD LIQUIDITY  ////////////////////
-  const amountEthMin = await ethers.utils.parseEther("0.09");
-  await Uniswap.connect(impersonatedSigner).addLiquidityETH(
+  const amountEthMin = await ethers.utils.parseEther("0.5");
+  await WETH_Contract_Address.connect(impersonatedSigner).approve(Uniswap_ROUTER, amountEthMin);
+  await Uniswap_Router_Contract_Address.connect(impersonatedSigner).addLiquidityETH(
     DAI,
-    amountBDesired,
-    amountAmin,
-    amountEthMin,
+    10000,
+    0,
+    0,
     DAIHolder,
     time
   );
 
-  const DAIBalanceAfter = await DaiContract.balanceOf(DAIHolder);
-  console.log(`DAI balance: ${DAIBalanceAfter}`)
+  const DAIBalanceAfterAddEth = await DAI_Contract_Address.balanceOf(DAIHolder);
+  console.log(`DAI balance: ${DAIBalanceAfterAddEth}`)
 
 
   //////////////// REMOVE LIQUIDITY  //////////////////////////
 
-  await Uniswap.connect(impersonatedSigner).removeLiquidity(
-    DAI,
-    UNI,
-    50,
-    amountAmin,
-    amountBmin,
-    DAIHolder,
-    time
-  )
+//   await Uniswap.connect(impersonatedSigner).removeLiquidity(
+//     DAI,
+//     UNI,
+//     50,
+//     amountAmin,
+//     amountBmin,
+//     DAIHolder,
+//     time
+//   )
 
-}
+ }
 
 
 // We recommend this pattern to be able to use async/await everywhere

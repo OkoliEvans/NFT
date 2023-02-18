@@ -13,7 +13,7 @@ async function main() {
   ////////////// SAFEMINT  ////////////////////
   const deployer = "0x58DcC051286728071423b907cF5eE1b8A40AC839";
   const token_id = 10010;
-  const token_uri ="QmWtuqk8fzNh6Lfk9ezWkS9jdQyy6iBQNrev8FfDphLdYG";
+  const token_uri ="QmeTQWn11DpzdSsnJwEhNsSGKxqp6Qrh47ngsQG1JNn41p";
 
   const mint = await Nft.safeMint(deployer,token_id,token_uri);
   console.log("NFT minted successfully");
